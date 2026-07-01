@@ -197,7 +197,7 @@
 
   .mascot {
     position: fixed; bottom: 0; z-index: 30; pointer-events: none;
-    width: min(20vw, 220px); height: auto;
+    width: min(22vw, 270px); height: auto;
     filter: drop-shadow(0 8px 16px rgba(180,140,0,0.28));
     transition: opacity 0.4s ease, transform 0.4s ease;
   }
@@ -208,7 +208,7 @@
   body.playing #pikaHappy { opacity: 0; transform: translateY(20px); }
   body.playing #pikaAngry { opacity: 1; transform: translateY(0); }
   /* 좁은 화면에선 본문과 겹치지 않게 숨김 */
-  @media (max-width: 860px) { .mascot { display: none; } }
+  @media (max-width: 960px) { .mascot { display: none; } }
 
   #electric {
     position: fixed; inset: 0; pointer-events: none; z-index: 40;
@@ -268,8 +268,6 @@
   .intro-rules li { font-size: 0.9rem; color: var(--muted); line-height: 1.4; }
   .intro-rules li b { color: var(--text); font-weight: 600; }
   #introBtn { width: 100%; padding: 14px; font-size: 1.05rem; }
-  .intro-skip { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; color: var(--muted); font-size: 0.8rem; cursor: pointer; }
-  .intro-skip input { accent-color: var(--accent); cursor: pointer; }
 </style>
 </head>
 <body>
@@ -287,7 +285,6 @@
         <li>🏆 <b>랭킹</b> — 최고 기록이 저장돼 순위에 올라요</li>
       </ul>
       <button id="introBtn">게임 시작하기 →</button>
-      <label class="intro-skip"><input type="checkbox" id="skipIntro"> 다음부터 이 화면 건너뛰기</label>
     </div>
   </div>
 
@@ -801,14 +798,14 @@
   // ===== 인트로 오버레이 =====
   const introOverlay = document.getElementById('introOverlay');
   const introBtn = document.getElementById('introBtn');
-  const skipIntro = document.getElementById('skipIntro');
-  const SKIP_KEY = 'reflexGridSkipIntro';
+  const SEEN_KEY = 'reflexGridIntroSeen';   // 세션당 한 번만 표시
 
-  if (localStorage.getItem(SKIP_KEY) === '1') {
-    introOverlay.classList.add('hidden');   // 건너뛰기 설정 시 바로 게임 화면
+  // 이번 접속(세션)에서 이미 봤으면 건너뜀 — 새 탭/새 접속마다 다시 표시
+  if (sessionStorage.getItem(SEEN_KEY) === '1') {
+    introOverlay.classList.add('hidden');
   }
   introBtn.addEventListener('click', () => {
-    localStorage.setItem(SKIP_KEY, skipIntro.checked ? '1' : '0');
+    sessionStorage.setItem(SEEN_KEY, '1');
     introOverlay.classList.add('hidden');
   });
 
