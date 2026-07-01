@@ -101,6 +101,8 @@
   .ghost-btn { background: var(--panel); box-shadow: none; }
   .ghost-btn:hover { background: var(--cell-hover); transform: none; }
   .ghost-btn:disabled { opacity: 0.4; }
+  .quit-btn { color: var(--accent); }
+  .quit-btn:hover:not(:disabled) { background: rgba(255,84,112,0.15); }
 
   #grid {
     display: grid;
@@ -184,6 +186,7 @@
   <div class="controls">
     <button id="startBtn">시작</button>
     <button id="pauseBtn" class="ghost-btn" disabled>⏸ 멈춤</button>
+    <button id="quitBtn" class="ghost-btn quit-btn" disabled>⏹ 종료</button>
     <div class="size-toggle" id="sizeToggle">
       <button data-size="3" class="active">3×3</button>
       <button data-size="4">4×4</button>
@@ -218,6 +221,7 @@
   const msgEl    = document.getElementById('message');
   const startBtn = document.getElementById('startBtn');
   const pauseBtn = document.getElementById('pauseBtn');
+  const quitBtn  = document.getElementById('quitBtn');
   const sizeToggle = document.getElementById('sizeToggle');
   const muteBtn  = document.getElementById('muteBtn');
   const rankListEl = document.getElementById('rankList');
@@ -508,6 +512,7 @@
     playing = true;
     paused = false;
     pauseBtn.disabled = false;
+    quitBtn.disabled = false;
     pauseBtn.textContent = '⏸ 멈춤';
     gridEl.classList.remove('paused');
     gameScore = 0;
@@ -528,10 +533,11 @@
     scheduleNext(600);
   }
 
-  function endGame() {
+  function endGame(quit) {
     playing = false;
     paused = false;
     pauseBtn.disabled = true;
+    quitBtn.disabled = true;
     pauseBtn.textContent = '⏸ 멈춤';
     gridEl.classList.remove('paused');
     stopMusic();                        // 게임 종료와 함께 음악 정지
@@ -546,7 +552,7 @@
     setToggleEnabled(true);
 
     const avgMs = avgReaction();
-    let result = `끝! <span class="hit">${gameScore.toLocaleString()}점</span>`;
+    let result = `${quit ? '중단!' : '끝!'} <span class="hit">${gameScore.toLocaleString()}점</span>`;
     if (hits > 0) result += ` · ${hits}개 명중`;
     if (avgMs !== null) result += ` · 평균 ${Math.round(avgMs)}ms`;
     if (maxCombo >= 2) result += ` · 최고 <span class="combo">${maxCombo}콤보</span>`;
@@ -597,6 +603,11 @@
   }
 
   pauseBtn.addEventListener('click', () => { paused ? resumeGame() : pauseGame(); });
+
+  quitBtn.addEventListener('click', () => {
+    if (!playing) return;
+    endGame(true);                      // 라운드 즉시 종료 (지금까지 점수로 정산)
+  });
 
   sizeToggle.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
