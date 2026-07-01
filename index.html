@@ -266,6 +266,30 @@
     }
   }
 
+  // 게임 종료 징글 — 루프 페이드아웃 후 짧게 울림 (masterGain을 거치지 않고 직접 출력)
+  function playEndJingle(win) {
+    if (muted || !audioCtx) return;
+    const start = audioCtx.currentTime + 0.2;   // 배경 루프 페이드아웃 뒤에
+    const notes = win
+      ? [523.25, 659.25, 783.99, 1046.50]       // C-E-G-C↑ : 밝은 승리 팡파레
+      : [659.25, 587.33, 523.25, 392.00];       // E-D-C-G↓ : 부드러운 마무리
+    const step = 0.15;
+    notes.forEach((f, i) => {
+      const t = start + i * step;
+      const last = i === notes.length - 1;
+      const dur = last ? 0.7 : step * 1.5;       // 마지막 음은 길게 울려 여운
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = f;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.22, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(t); osc.stop(t + dur + 0.05);
+    });
+  }
+
   function buildGrid() {
     gridEl.innerHTML = '';
     gridEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;  // 칸은 CSS가 반응형으로 크기 결정
@@ -381,15 +405,18 @@
     if (penalties > 0) result += ` · 실수 ${penalties}회`;
 
     // 최고 기록 갱신: 충분히 플레이했고(5히트 이상) 평균이 더 낮을 때
+    let newRecord = false;
     if (avg !== null && score >= 5) {
       if (isNaN(best) || avg < best) {
         best = avg;
         localStorage.setItem('reflexGridBest', String(best));
         bestEl.textContent = Math.round(best) + ' ms';
         result += ' 🏆 <span class="hit">신기록!</span>';
+        newRecord = true;
       }
     }
     flash(result);
+    playEndJingle(newRecord);           // 종료 징글: 신기록이면 승리 팡파레
   }
 
   function setToggleEnabled(on) {
