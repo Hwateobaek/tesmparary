@@ -3,24 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>반사신경 테스트 🎯</title>
+<link rel="icon" href="pikachu.png">
+<title>반사신경 테스트 ⚡</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --panel: #1a1d29;
-    --cell: #272b3a;
-    --cell-hover: #323750;
-    --accent: #ff5470;
-    --accent-glow: rgba(255, 84, 112, 0.6);
-    --good: #36e2a4;
-    --text: #e8eaf2;
-    --muted: #7a8099;
-    --gold: #ffb454;
+    --bg: #fff3c4;                 /* 크림-노랑 베이스 */
+    --bg2: #ffe07a;                /* 아래쪽 진한 노랑 */
+    --panel: #fffdf7;              /* 카드(거의 흰색) */
+    --cell: #fdeec0;              /* 기본 칸 (연노랑) */
+    --cell-hover: #fbe49a;
+    --accent: #f5a800;            /* 피카츄 골드 (버튼/불빛) */
+    --accent-ink: #5a3d00;        /* 골드 위 진한 갈색 글씨 */
+    --accent-glow: rgba(245, 168, 0, 0.55);
+    --good: #1fa463;             /* 점수/성공 초록 */
+    --text: #4a3a12;             /* 따뜻한 진갈색 글씨 */
+    --muted: #a58a4c;
+    --gold: #ef5a24;             /* 콤보 과열 강조 (레드-오렌지) */
+    --red: #e8452b;              /* 피카츄 볼 레드 (실수/종료) */
+    --miss: #ffd2c9;             /* 실수 칸 연한 빨강 */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: radial-gradient(circle at 50% 0%, #1c2030 0%, var(--bg) 60%);
+    background: radial-gradient(circle at 50% 0%, #fff8d6 0%, var(--bg) 55%, var(--bg2) 100%);
+    background-attachment: fixed;
     color: var(--text);
     min-height: 100vh;
     display: flex;
@@ -35,6 +41,18 @@
     font-size: 1.9rem;
     margin-bottom: 4px;
     letter-spacing: 1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pika-icon {
+    width: 1.5em; height: 1.5em;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    background: #fff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 2px 8px var(--accent-glow);
   }
   .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; }
 
@@ -63,7 +81,7 @@
   .controls { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; }
   button {
     background: var(--accent);
-    color: white;
+    color: var(--accent-ink);
     border: none;
     padding: 11px 26px;
     border-radius: 10px;
@@ -101,8 +119,8 @@
   .ghost-btn { background: var(--panel); box-shadow: none; }
   .ghost-btn:hover { background: var(--cell-hover); transform: none; }
   .ghost-btn:disabled { opacity: 0.4; }
-  .quit-btn { color: var(--accent); }
-  .quit-btn:hover:not(:disabled) { background: rgba(255,84,112,0.15); }
+  .quit-btn { color: var(--red); }
+  .quit-btn:hover:not(:disabled) { background: rgba(232,69,43,0.12); }
 
   #grid {
     display: grid;
@@ -118,16 +136,18 @@
     border-radius: 14px;
     cursor: pointer;
     transition: background 0.06s, transform 0.06s;
-    border: 1px solid rgba(255,255,255,0.04);
+    border: 1px solid rgba(214, 170, 60, 0.28);
+    box-shadow: inset 0 -2px 4px rgba(214,170,60,0.12);
   }
   .cell:hover { background: var(--cell-hover); }
   .cell.lit {
-    background: var(--accent);
-    box-shadow: 0 0 26px var(--accent-glow), inset 0 0 12px rgba(255,255,255,0.25);
-    transform: scale(1.04);
+    background: radial-gradient(circle at 50% 40%, #ffd94a 0%, var(--accent) 70%);
+    border-color: #d98e00;
+    box-shadow: 0 0 30px var(--accent-glow), 0 0 10px rgba(245,168,0,0.9), inset 0 0 12px rgba(255,255,255,0.4);
+    transform: scale(1.06);
   }
   .cell.miss {
-    background: #44303a;
+    background: var(--miss);
     transition: background 0.25s;
   }
   #grid.paused { opacity: 0.3; filter: grayscale(0.5); pointer-events: none; transition: opacity 0.15s; }
@@ -139,7 +159,7 @@
     text-align: center;
   }
   #message .hit { color: var(--good); font-weight: 600; }
-  #message .bad { color: var(--accent); font-weight: 600; }
+  #message .bad { color: var(--red); font-weight: 600; }
   #message .combo { color: var(--gold); font-weight: 600; }
 
   .ranking {
@@ -173,8 +193,8 @@
 
   #introOverlay {
     position: fixed; inset: 0; z-index: 100;
-    background: rgba(10, 12, 18, 0.92);
-    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    background: rgba(255, 235, 150, 0.88);
+    -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
     display: flex; align-items: center; justify-content: center;
     padding: 20px;
     transition: opacity 0.3s ease;
@@ -189,7 +209,16 @@
     text-align: center;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   }
-  .intro-emoji { font-size: 2.6rem; margin-bottom: 4px; }
+  .intro-emoji { font-size: 2.6rem; margin-bottom: 8px; }
+  .pika-hero {
+    width: 116px; height: 116px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    background: linear-gradient(160deg, #fff6cf, #ffe89a);
+    border: 3px solid var(--accent);
+    box-shadow: 0 8px 24px var(--accent-glow);
+  }
   .intro-card h2 { font-size: 1.6rem; letter-spacing: 1px; margin-bottom: 6px; }
   .intro-lead { color: var(--text); font-size: 0.95rem; margin-bottom: 18px; line-height: 1.5; }
   .intro-rules { list-style: none; text-align: left; display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; }
@@ -203,7 +232,7 @@
 <body>
   <div id="introOverlay">
     <div class="intro-card">
-      <div class="intro-emoji">🎯</div>
+      <div class="intro-emoji"><img src="pikachu.png" class="pika-hero" alt="피카츄"></div>
       <h2>반사신경 테스트</h2>
       <p class="intro-lead">반짝이는 칸을 누구보다 빠르게 눌러 최고 점수에 도전하세요!</p>
       <ul class="intro-rules">
@@ -219,7 +248,7 @@
     </div>
   </div>
 
-  <h1>반사신경 테스트 🎯</h1>
+  <h1>반사신경 테스트 <img src="pikachu.png" class="pika-icon" alt="피카츄"></h1>
   <div class="subtitle">반짝이는 칸을 최대한 빠르게 누르세요 · 한 판 30초</div>
 
   <div class="stats">
