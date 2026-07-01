@@ -98,6 +98,10 @@
   .icon-btn:hover { background: var(--cell-hover); transform: none; }
   .icon-btn.muted { opacity: 0.55; }
 
+  .ghost-btn { background: var(--panel); box-shadow: none; }
+  .ghost-btn:hover { background: var(--cell-hover); transform: none; }
+  .ghost-btn:disabled { opacity: 0.4; }
+
   #grid {
     display: grid;
     gap: clamp(8px, 2.5vw, 12px);
@@ -124,6 +128,7 @@
     background: #44303a;
     transition: background 0.25s;
   }
+  #grid.paused { opacity: 0.3; filter: grayscale(0.5); pointer-events: none; transition: opacity 0.15s; }
 
   #message {
     height: 26px;
@@ -178,6 +183,7 @@
 
   <div class="controls">
     <button id="startBtn">시작</button>
+    <button id="pauseBtn" class="ghost-btn" disabled>⏸ 멈춤</button>
     <div class="size-toggle" id="sizeToggle">
       <button data-size="3" class="active">3×3</button>
       <button data-size="4">4×4</button>
@@ -211,6 +217,7 @@
   const bestEl   = document.getElementById('best');
   const msgEl    = document.getElementById('message');
   const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
   const sizeToggle = document.getElementById('sizeToggle');
   const muteBtn  = document.getElementById('muteBtn');
   const rankListEl = document.getElementById('rankList');
@@ -223,6 +230,8 @@
   let size = 3;
   let cells = [];
   let playing = false;
+  let paused = false;
+  let pauseAt = 0;          // 일시정지 시작 시각 (보정용)
   let litIndex = -1;
   let litAt = 0;
   let reactionTimes = [];   // 명중한 반응속도(ms)만 저장 (종료 시 평균 표시용)
@@ -420,7 +429,7 @@
   }
 
   function onCellPress(e) {
-    if (!playing) return;
+    if (!playing || paused) return;
     const idx = parseInt(e.currentTarget.dataset.index, 10);
     if (idx === litIndex) {
       // ===== 명중 =====
@@ -497,6 +506,10 @@
 
   function startGame() {
     playing = true;
+    paused = false;
+    pauseBtn.disabled = false;
+    pauseBtn.textContent = '⏸ 멈춤';
+    gridEl.classList.remove('paused');
     gameScore = 0;
     combo = 0;
     maxCombo = 0;
@@ -517,6 +530,10 @@
 
   function endGame() {
     playing = false;
+    paused = false;
+    pauseBtn.disabled = true;
+    pauseBtn.textContent = '⏸ 멈춤';
+    gridEl.classList.remove('paused');
     stopMusic();                        // 게임 종료와 함께 음악 정지
     cancelAnimationFrame(rafId);
     clearTimeout(nextTimeout);
@@ -552,6 +569,34 @@
   function setToggleEnabled(on) {
     sizeToggle.querySelectorAll('button').forEach(b => b.disabled = !on);
   }
+
+  function pauseGame() {
+    if (!playing || paused) return;
+    paused = true;
+    pauseAt = performance.now();
+    cancelAnimationFrame(rafId);        // 타이머 정지
+    clearTimeout(nextTimeout);          // 다음 불빛 예약 취소
+    stopMusic();                        // 음악 정지
+    gridEl.classList.add('paused');     // 그리드 흐리게 + 클릭 차단
+    pauseBtn.textContent = '▶ 계속';
+    flash('⏸ 일시정지');
+  }
+
+  function resumeGame() {
+    if (!playing || !paused) return;
+    const pausedFor = performance.now() - pauseAt;
+    paused = false;
+    endAt += pausedFor;                 // 남은 시간 보존
+    if (litIndex >= 0) litAt += pausedFor;  // 반응시간에 정지시간이 포함되지 않도록 보정
+    gridEl.classList.remove('paused');
+    pauseBtn.textContent = '⏸ 멈춤';
+    startMusic();                       // 음악 재개 (음소거면 그대로 무음)
+    tick();                             // 타이머 재개
+    if (litIndex < 0) scheduleNext(300);  // 불이 꺼진 상태였다면 흐름 다시 시작
+    flash('계속! 🔥');
+  }
+
+  pauseBtn.addEventListener('click', () => { paused ? resumeGame() : pauseGame(); });
 
   sizeToggle.addEventListener('click', (e) => {
     const btn = e.target.closest('button');
