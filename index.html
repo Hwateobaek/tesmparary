@@ -170,9 +170,55 @@
   .rank-list li.empty { justify-content: center; color: var(--muted); font-size: 0.8rem; }
 
   .footer { margin-top: 10px; color: var(--muted); font-size: 0.78rem; text-align: center; line-height: 1.5; }
+
+  #introOverlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(10, 12, 18, 0.92);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    transition: opacity 0.3s ease;
+  }
+  #introOverlay.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+  .intro-card {
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 28px 26px 22px;
+    width: min(92vw, 460px);
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .intro-emoji { font-size: 2.6rem; margin-bottom: 4px; }
+  .intro-card h2 { font-size: 1.6rem; letter-spacing: 1px; margin-bottom: 6px; }
+  .intro-lead { color: var(--text); font-size: 0.95rem; margin-bottom: 18px; line-height: 1.5; }
+  .intro-rules { list-style: none; text-align: left; display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; }
+  .intro-rules li { font-size: 0.9rem; color: var(--muted); line-height: 1.4; }
+  .intro-rules li b { color: var(--text); font-weight: 600; }
+  #introBtn { width: 100%; padding: 14px; font-size: 1.05rem; }
+  .intro-skip { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; color: var(--muted); font-size: 0.8rem; cursor: pointer; }
+  .intro-skip input { accent-color: var(--accent); cursor: pointer; }
 </style>
 </head>
 <body>
+  <div id="introOverlay">
+    <div class="intro-card">
+      <div class="intro-emoji">🎯</div>
+      <h2>반사신경 그리드</h2>
+      <p class="intro-lead">반짝이는 칸을 누구보다 빠르게 눌러 최고 점수에 도전하세요!</p>
+      <ul class="intro-rules">
+        <li>⏱️ <b>한 판 30초</b> — 칸이 반짝이면 최대한 빨리 클릭</li>
+        <li>⚡ <b>빠를수록 고득점</b> — 반응속도에 비례해 점수 획득</li>
+        <li>🔥 <b>콤보 보너스</b> — 연속 명중 시 점수 배율↑ (최대 2.5×)</li>
+        <li>❌ <b>빈 칸 주의</b> — 잘못 누르면 콤보가 끊기고 감점</li>
+        <li>🎚️ <b>난이도</b> — 3×3 / 4×4 / 5×5 (어려울수록 배율↑)</li>
+        <li>🏆 <b>랭킹</b> — 최고 기록이 저장돼 순위에 올라요</li>
+      </ul>
+      <button id="introBtn">게임 시작하기 →</button>
+      <label class="intro-skip"><input type="checkbox" id="skipIntro"> 다음부터 이 화면 건너뛰기</label>
+    </div>
+  </div>
+
   <h1>반사신경 그리드 🎯</h1>
   <div class="subtitle">반짝이는 칸을 최대한 빠르게 누르세요 · 한 판 30초</div>
 
@@ -645,6 +691,20 @@
       updateBest();
       renderRanks();
     }
+  });
+
+  // ===== 인트로 오버레이 =====
+  const introOverlay = document.getElementById('introOverlay');
+  const introBtn = document.getElementById('introBtn');
+  const skipIntro = document.getElementById('skipIntro');
+  const SKIP_KEY = 'reflexGridSkipIntro';
+
+  if (localStorage.getItem(SKIP_KEY) === '1') {
+    introOverlay.classList.add('hidden');   // 건너뛰기 설정 시 바로 게임 화면
+  }
+  introBtn.addEventListener('click', () => {
+    localStorage.setItem(SKIP_KEY, skipIntro.checked ? '1' : '0');
+    introOverlay.classList.add('hidden');
   });
 
   // 초기화
