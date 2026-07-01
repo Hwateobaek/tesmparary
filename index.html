@@ -194,6 +194,21 @@
 
   .footer { margin-top: 10px; color: var(--muted); font-size: 0.78rem; text-align: center; line-height: 1.5; }
 
+  .mascot {
+    position: fixed; bottom: 0; z-index: 30; pointer-events: none;
+    width: min(20vw, 220px); height: auto;
+    filter: drop-shadow(0 8px 16px rgba(180,140,0,0.28));
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  /* 기본(대기) 화면: happy 오른쪽 표시 / angry 숨김 */
+  #pikaHappy { right: 1.5vw; opacity: 1; transform: translateY(0); }
+  #pikaAngry { left: 1.5vw; opacity: 0; transform: translateY(20px); }
+  /* 게임 중: happy 숨김 / angry 왼쪽 등장 */
+  body.playing #pikaHappy { opacity: 0; transform: translateY(20px); }
+  body.playing #pikaAngry { opacity: 1; transform: translateY(0); }
+  /* 좁은 화면에선 본문과 겹치지 않게 숨김 */
+  @media (max-width: 860px) { .mascot { display: none; } }
+
   #electric {
     position: fixed; inset: 0; pointer-events: none; z-index: 40;
     opacity: 0; transition: opacity 0.35s ease;
@@ -307,6 +322,9 @@
     </div>
     <ol id="rankList" class="rank-list"></ol>
   </div>
+
+  <img id="pikaHappy" class="mascot" src="pika-happy.png" alt="" aria-hidden="true">
+  <img id="pikaAngry" class="mascot" src="pika-angry.png" alt="" aria-hidden="true">
 
   <div id="electric" aria-hidden="true"></div>
 
@@ -637,6 +655,7 @@
   function startGame() {
     playing = true;
     paused = false;
+    document.body.classList.add('playing');   // happy→angry 마스코트 전환
     pauseBtn.disabled = false;
     quitBtn.disabled = false;
     pauseBtn.textContent = '⏸ 멈춤';
@@ -662,6 +681,7 @@
   function endGame(quit) {
     playing = false;
     paused = false;
+    document.body.classList.remove('playing');  // angry→happy 마스코트 복귀
     pauseBtn.disabled = true;
     quitBtn.disabled = true;
     pauseBtn.textContent = '⏸ 멈춤';
